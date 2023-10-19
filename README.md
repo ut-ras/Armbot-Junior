@@ -4,17 +4,25 @@ This repository contains all the necessary documentation and code base for the A
 
 ## Introduction
 
-Armbot-Junior is a miniature 6DOF (Degrees of Freedom) robotic arm project. It is primarily designed to serve as a test bed for the main Armbot project and as an educational tool. This project uses DFRobot's Servos with an analog feedback mechanism, enabling the user to get real-time position data of the robot arm.
+Armbot-Junior is a miniature 6DOF (Degrees of Freedom) robotic arm project. It is primarily designed to serve as a test bed for the main Armbot project and as an educational tool. This project uses DFRobot's Servos with an internal analog feedback potentiometer, enabling the user to get real-time position data of the robot arm.
 
 ## Software Guide
 
-Currently, there are three project folders:
+Currently, there are three versions of the Arduino sketch (will be converted to have helper ):
 
-1. `ArmbotJr_DFR_single_servo`: Implements a basic feedback calibration system and move-to-target command for a single DFRobot servo.
-2. `ArmbotJr_DFR_servos`: Adds a custom servo config struct that allows for easy configuration of individual parameters for each arm joint.
-3. `ArmbotJr_DFR_servos_PWM_Shield`: The current working file. It's similar to `ArmbotJr_DFR_servos` but is designed for use with an Adafruit 16-Channel 12-bit PWM/Servo Driver Shield or a similar I2C device.
+1. [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos/ArmbotJr_DFR_servos_PWM_Shield.ino): The current working file. It's similar to `ArmbotJr_DFR_servos` but is designed for use with an Adafruit 16-Channel 12-bit PWM/Servo Driver Shield or a similar I2C device.
 
-## ArmbotJr_DFR_servos_PWM_Shield
+2. [`ArmbotJr_DFR_servos.ino`](ArmbotJr_DFR_servos/ArmbotJr_DFR_servos.ino): Older version, adds a custom servo config struct that allows for easy configuration of individual parameters for each arm joint.
+
+3. [`ArmbotJr_DFR_single_servo.ino`](ArmbotJr_DFR_single_servo/ArmbotJr_DFR_single_servo.ino): Prototype program, tests out a basic feedback calibration system and move-to-target command for a single DFRobot servo.
+
+
+
+
+
+
+
+## [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_servos_PWM_Shield.ino)
 
 The `ArmbotJr_DFR_servos_PWM_Shield` program works as follows:
 
@@ -26,12 +34,19 @@ A struct named `ServoConfig` is defined to hold the configuration details of eac
 ```cpp
 struct ServoConfig {
   char name[20];
-  int PWM_pin;
+  int PWM_Channel;
   int Feedback_Pin;
   int minDegree;
   int maxDegree;
   int minFeedback;
   int maxFeedback;
+
+    // Constructor for struct ServoConfig
+  ServoConfig(const char* servo_name, int channel, int feedback, int min_deg, int max_deg)
+    : PWM_Channel(channel), Feedback_Pin(feedback), minDegree(min_deg), maxDegree(max_deg), minFeedback(0), maxFeedback(1023) {
+    strncpy(name, servo_name, sizeof(name));
+    name[sizeof(name) - 1] = '\0';
+  }
 };
 ```
 
@@ -39,6 +54,17 @@ struct ServoConfig {
 As of writing, only two servos are initialized using the `ServoConfig struct` - "Base" and "J1".
 
 ***Please note, "JX" is just a placeholder for additional servos that are yet to be added.***
+
+The `minDegree` and `maxDegree` values are the actual movment limits of the arm joint associated with each servo motor. For example, the Base joint moves from 0 to 180 degrees, so at the top of the code (or in the `setup()` function), it may be configured with:
+
+```
+ServoConfig Base("Base", 0, A0, 0, 180); 
+```
+Where `"Base"` is the joint's name, `0` is the PWM Channel, corresponding to where the servo cable is plugged into on the PWM Shield, `A0` is the pin connected to servo's white feedback signal wire, and `0, 180` are the minimum and maximum rotation/angle the base joint can physically move.
+
+You can configure the servo like this at the start of the code, or within the `setup()` function.
+
+After configuring, you'll now be able to "pass in" `Base` to functions like `calibrate()`, `moveTo()`, and `getPos()`.
 
 ### The `setup()` function
 
@@ -81,8 +107,19 @@ In this case, the `Base_conf object` is passed as an argument to the `calibrate(
 
 Please note that the calibration should be performed during the setup phase of the Arduino program in the `setup()` function.
 
+### The `loop()` Function
 
-In the `setup()` function, the serial communication begins with a baud rate of 9600. The PWM servo driver is initialized and its frequency is set to 60 Hz. The two servos are calibrated by calling the `calibrate()` function.
+The `loop()` function is where you put your `moveTo()` function calls. For example:
+
+```cpp
+void loop() {
+  moveTo(Base, Base_conf, 0);
+  moveTo(Base, Base_conf, 180);
+}
+```
+
+In this example, the `Base` servo moves between 0 and 180 degrees.
+
 
 ### The `moveTo()` Function Explained
 
@@ -169,15 +206,4 @@ map(500, 300, 700, 0, 180)
 It will tell you the servo is currently at `90 degrees`, right in the middle of its range from `0 to 180 degrees`.
 
 
-### The `loop()` Function
 
-Finally, the `loop()` function is where you put your `moveTo()` function calls. For example:
-
-```cpp
-void loop() {
-  moveTo(Base, Base_conf, 0);
-  moveTo(Base, Base_conf, 180);
-}
-```
-
-In this example, the `Base` servo moves between 0 and 180 degrees.

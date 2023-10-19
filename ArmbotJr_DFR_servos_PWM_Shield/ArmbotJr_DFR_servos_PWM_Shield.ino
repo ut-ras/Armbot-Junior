@@ -5,7 +5,7 @@
 // Create a structure to hold Servo configuration
 struct ServoConfig {
   char name[20];  // Holds servo name
-  int PWM_pin;    // Holds PWM pin number connected to the servo
+  int PWM_Channel;    // Holds PWM pin number connected to the servo
   int Feedback_Pin;  // Holds Feedback pin number receiving feedback from servo
   int minDegree;  // Holds the minimum limit of the servo
   int maxDegree;  // Holds maximum limit of the servo
@@ -14,7 +14,7 @@ struct ServoConfig {
 
   // Constructor for struct ServoConfig
   ServoConfig(const char* servo_name, int channel, int feedback, int min_deg, int max_deg)
-    : PWM_pin(channel), Feedback_Pin(feedback), minDegree(min_deg), maxDegree(max_deg), minFeedback(0), maxFeedback(1023) {
+    : PWM_Channel(channel), Feedback_Pin(feedback), minDegree(min_deg), maxDegree(max_deg), minFeedback(0), maxFeedback(1023) {
     strncpy(name, servo_name, sizeof(name));
     name[sizeof(name) - 1] = '\0';
   }
