@@ -8,7 +8,7 @@ Armbot-Junior is a miniature 6DOF (Degrees of Freedom) robotic arm project. It i
 
 ## Software Guide
 
-Currently, there are three versions of the Arduino sketch (will be converted to have helper ):
+Currently, there are three versions of the Arduino sketch (*Should be converted to have all helper functions in seperate file(s) later*):
 
 1. [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos/ArmbotJr_DFR_servos_PWM_Shield.ino): The current working file. It's similar to `ArmbotJr_DFR_servos` but is designed for use with an Adafruit 16-Channel 12-bit PWM/Servo Driver Shield or a similar I2C device.
 
@@ -22,7 +22,7 @@ Currently, there are three versions of the Arduino sketch (will be converted to 
 
 
 
-## [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_servos_PWM_Shield.ino)
+### [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_servos_PWM_Shield.ino) Explained
 
 The `ArmbotJr_DFR_servos_PWM_Shield` program works as follows:
 
@@ -125,7 +125,7 @@ In this example, the `Base` servo moves between 0 and 180 degrees.
 
 `moveTo(ServoConfig &config, int goal)` function is used to move a servo to a target position. It checks if the target position is within the servo's valid degree range. If yes, it maps the degree to a pulse length and moves the servo to the target position.
 
-The function starts by ensuring the angle you want to move the servo to (`goal`) is within the allowable range. If the `goal` is out of these boundaries, "OUT OF BOUNDS" is printed on the serial monitor, and the function exits.
+The function starts by ensuring the angle you want to move the servo towards, the `goal`, is within the range of the motion arm joint. If the `goal` is out of these boundaries, "OUT OF BOUNDS" is printed on the serial monitor, and the function exits.
 
 ```cpp
 if(goal > config.maxDegree || goal < config.minDegree){
@@ -165,7 +165,8 @@ Serial.println(getPos(config));
 
 ### Understanding the `getPos()` Function
 
-The `getPos()` function is a game-changer—it helps you know the real-time position of the servo in degrees. This function reads the analog feedback from the servo's feedback pin and maps it to the corresponding angle. Sounds complicated? Let's break it down.
+The `getPos()` function helps us know the real-time position of the servo in degrees. 
+This function reads the analog feedback from the servo's feedback pin and maps it to the corresponding angle. Sounds complicated? Let's break it down.
 
 Here's the function:
 
