@@ -1,6 +1,13 @@
 // Include necessary libraries
+#include <Arduino.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <Wire.h>
+
+  Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+// Define constants for PWM pulse length, 
+// These are given by the manufacturer of the DFRobot Servo's
+int DFR_min = 2505;
+int DFR_max = 495;
 
 // Create a structure to hold Servo configuration
 struct ServoConfig {
@@ -25,10 +32,7 @@ ServoConfig Base_conf("Base", 0, A0, 0, 180);
 ServoConfig J1_conf("J1", 1, A1, 0, 180);
 ServoConfig JX_conf("JX", 2, A2, 90, 180);
 
-// Define constants for PWM pulse length, 
-// These are given by the manufacturer of the DFRobot Servo's
-int DFR_min = 2505;
-int DFR_max = 495;
+
 
 // Calibrate a servo
 void calibrate(ServoConfig &config) {
@@ -72,7 +76,7 @@ void moveTo(ServoConfig &config, int goal) {
   int pulseLen = map(goal, config.minDegree, config.maxDegree, DFR_min, DFR_max);
 
   // Move the servo to desired position
-  pwm.setPWM(config.PWM_pin, 0, pulseLen);
+  pwm.setPWM(config.PWM_Channel, 0, pulseLen);
 }
 
 // Setup function for initializing the program
@@ -81,6 +85,7 @@ void setup() {
   Serial.begin(9600);
 
   // Initialize the Adafruit PWM servo driver
+
   pwm.begin();
   pwm.setPWMFreq(60);  // Set PWM frequency to 60Hz
 
