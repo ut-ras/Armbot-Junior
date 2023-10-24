@@ -11,7 +11,7 @@ const int DFR_min = 125;
 
  // from 2500us = 270deg per the datasheet
  //(2500us * 60Hz)*4096 = 614.4
-const int DFR_max = 615;
+const int DFR_max = 635;
 
 // Create a structure to hold Servo configuration
 struct ServoConfig {
@@ -33,8 +33,8 @@ struct ServoConfig {
 };
 
 // Create ServoConfig objects for each servo
-ServoConfig Base_conf("Base", 0, A0, 0, 191, 90);
-ServoConfig J1_conf("J1", 1, A1, 5, 190, 90);
+ServoConfig Base_conf("Base", 0, A0, 0, 180, 90);
+ServoConfig J1_conf("J1", 1, A1, 5, 180, 90);
 //ServoConfig JX_conf("JX", 2, A2, 90, 180);
 
 
@@ -84,7 +84,7 @@ int getPos(const ServoConfig &config) {
 bool moveTo(ServoConfig &config, int goal) {
   // Check if the goal is within servo's limit
   if (goal > config.maxDegree || goal < config.minDegree) {
-    Serial.println("Out of bounds");
+    Serial.println("Out of bounds!!!");
     return false;
   }
   
@@ -92,12 +92,19 @@ bool moveTo(ServoConfig &config, int goal) {
   Serial.print(config.name);
   Serial.print(" to ");
   Serial.println(goal);
-
   // Calculate the pulse length for the given position
   int pulseLen = map(goal, 0, 270, DFR_min, DFR_max);
-
   // Move the servo to desired position
   pwm.setPWM(config.PWM_Channel, 0, pulseLen);
+  delay (1500); //wait for joint to move
+  // Check if the servo moved to desired position
+  int diff = (getPos(config) - goal);
+  if (abs(diff) > 1)
+  {
+    Serial.println("Failed to move to desired position, fixing...");
+    moveTo(config, (goal + diff));
+  }
+  //if we made it and alls good:
   return true;
 }
 
