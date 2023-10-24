@@ -149,3 +149,8 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/c,c++,macos,windows,linux
+ArmbotJr_DFR_servos_PWM_Shield/.vscode/arduino.json
+.vscode/arduino.json
+**/.vscode/**
+*.json
+.vscode/*.json
