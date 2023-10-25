@@ -11,7 +11,7 @@ const int DFR_min = 125;
 
  // from 2500us = 270deg per the datasheet
  //(2500us * 60Hz)*4096 = 614.4
-const int DFR_max = 635;
+const int DFR_max = 615;
 
 // Create a structure to hold Servo configuration
 struct ServoConfig {
@@ -35,7 +35,7 @@ struct ServoConfig {
 // Create ServoConfig objects for each servo
 ServoConfig Base_conf("Base", 0, A0, 0, 180, 90);
 ServoConfig J1_conf("J1", 1, A1, 5, 180, 90);
-//ServoConfig JX_conf("JX", 2, A2, 90, 180);
+ServoConfig J2_conf("J2", 2, A2, 5, 267, 129);
 
 
 
@@ -98,11 +98,11 @@ bool moveTo(ServoConfig &config, int goal) {
   pwm.setPWM(config.PWM_Channel, 0, pulseLen);
   delay (1500); //wait for joint to move
   // Check if the servo moved to desired position
-  int diff = (getPos(config) - goal);
-  if (abs(diff) > 1)
+ int diff = (getPos(config) - goal);
+if (abs(diff) > 1)
   {
     Serial.println("Failed to move to desired position, fixing...");
-    moveTo(config, (goal + diff));
+  moveTo(config, (goal + diff));
   }
   //if we made it and alls good:
   return true;
@@ -124,6 +124,11 @@ void setup() {
   //calibrate(JX_conf);
 }
 
+void printPos(const ServoConfig &config) {
+  Serial.print(config.name);
+  Serial.print(" Position: ");
+  Serial.println(getPos(config));
+}
 // Loop function for continuously running the program
 void loop() {
   // Move the Base servo back and forth between 0 and 180 degrees
