@@ -69,10 +69,10 @@ struct ServoConfig {
 ServoConfig Base_conf("Base", 0, A0, 0, 195, -90, 90, 0);
 ServoConfig J1_conf("J1", 1, A1, 5, 180, -90, 90, 0);
 ServoConfig J2_conf("J2", 2, A2, 5, 270, -135, 135, 0);
-ServoConfig allJoints[] = {Base_conf, J1_conf, J2_conf};  // Add more joints here when you expand your arm
+ServoConfig allJoints[] = {Base_conf, J1_conf, J2_conf};  // Add more joints here 
 const int numJoints = sizeof(allJoints) / sizeof(ServoConfig);
 
-
+//poses to test with
 const int numPoses = 10;  // Number of poses in the sequence
 Pose poseSequence[numPoses] = {
   Pose(0, 0, 0, 0, 0),
