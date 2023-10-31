@@ -1,7 +1,7 @@
 {
-    "configuration": "cpu=atmega2560",
     "board": "arduino:avr:mega",
     "programmer": "avrispmkii",
     "sketch": "ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_servos_PWM_Shield.ino",
-    "port": "/dev/tty.usbmodem1101"
+    "port": "/dev/tty.usbmodem1101",
+    "configuration": "cpu=atmega2560"
 }

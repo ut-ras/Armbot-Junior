@@ -7,7 +7,7 @@ Servo J1;
 
 // Control and feedback pins
 int J1_PWM_Pin = 9;
-int feedbackPin = A0;
+int feedbackPin = A4;
 
 
 
@@ -19,8 +19,8 @@ int maxFeedback;
 int tolerance = 1; // max feedback measurement error
 
 
-int DFR_min = 2505;
-int DFR_max = 495;
+int DFR_max = 615;
+int DFR_min = 125;
 
 
 void calibrate(Servo servo, int analogPin, int minPos, int maxPos)
@@ -94,6 +94,9 @@ void loop()
 {
   
 moveTo(0);
+delay(1000);
+moveTo(90);
+delay(1000);
 
   
   
