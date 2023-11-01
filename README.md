@@ -1,6 +1,8 @@
-# Armbot-Junior
+# Armbot-Junior 
 
 This repository contains all the necessary documentation and code base for the Armbot-Junior Demobots project.
+
+## PLEASE NOTE THAT THE README IS STILL A WORK IN PROGRESS, DESCRIPTIONS OF CODE AND FUNCTIONS ARE NOT COMPLETE AND MAY BE INACCURATE.
 
 ## Introduction
 
@@ -8,17 +10,16 @@ Armbot-Junior is a miniature 6DOF (Degrees of Freedom) robotic arm project. It i
 
 ## Software Guide
 
-Currently, there are three versions of the Arduino sketch (*Should be converted to have all helper functions in seperate file(s) later*):
+Download the Arduino IDE either standalone or as a VSCode extension (or use platformIO if you're crazy). Clone the repository and open the project in the IDE. Be sure to install the Adafruit PWM, (`Adafruit_PWMServoDriver.h`), library from the Arduino Library Manager or elsewhere
 
-1. [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos/ArmbotJr_DFR_servos_PWM_Shield.ino): The current working file. It's similar to `ArmbotJr_DFR_servos` but is designed for use with an Adafruit 16-Channel 12-bit PWM/Servo Driver Shield or a similar I2C device.
+1. [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_servos_PWM_Shield.ino): The current working file. It's similar to `ArmbotJr_DFR_servos` but is designed for use with an Adafruit 16-Channel 12-bit PWM/Servo Driver Shield or a similar I2C device.
 
-2. [`ArmbotJr_DFR_servos.ino`](ArmbotJr_DFR_servos/ArmbotJr_DFR_servos.ino): Older version, adds a custom servo config struct that allows for easy configuration of individual parameters for each arm joint.
+2. [`ArmbotJr_DFR_Functions.h`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_Functions.h): Header file, includes the needed libraries, contains the `ServoConfig` struct, the `Pose` struct, global variables and function prototypes for the `ArmbotJr_DFR_servos_PWM_Shield.ino` program.
 
-3. [`ArmbotJr_DFR_single_servo.ino`](ArmbotJr_DFR_single_servo/ArmbotJr_DFR_single_servo.ino): Prototype program, tests out a basic feedback calibration system and move-to-target command for a single DFRobot servo.
-
-
+3. [`ArmbotJr_DFR_Functions.cpp`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_Functions.cpp): Source file, contains the function  definitions for the `ArmbotJr_DFR_servos_PWM_Shield.ino` program.
 
 
+This Arduino Sketch was originally in a single file, but was split into a "main" `.ino` file, a header file, and a source file to make it easier to read and understand.
 
 
 
@@ -28,7 +29,7 @@ The `ArmbotJr_DFR_servos_PWM_Shield` program works as follows:
 
 A struct named `ServoConfig` is defined to hold the configuration details of each servo such as name, PWM pin number, feedback pin number, a minimum and maximum degree value, and a minimum and maximum feedback value (for use in calibration). A constructor is also defined which accepts these parameters to create an object of the struct. 
 
-###### (*A constructor is a special kind of function that gets called automatically when an object of the struct is created. Its main purpose is to assign initial values to the data members of the new object. It helps ensure that objects are valid as soon as they're created and simplifies code since initialization details are kept within the struct.*)
+###### (*A constructor is a special kind of function that gets called automatically when an object of the struct is created. Its main purpose is to assign initial values to the data members of the new object. It helps ensure that objects are valid as soon as they're created and simplifies code since initialization details are kept within the struct. Honestly this shouldnt really be done with a struct, I just kind of suck using Classes properly, add that to the TODO list lol*) 
 
 
 ```cpp

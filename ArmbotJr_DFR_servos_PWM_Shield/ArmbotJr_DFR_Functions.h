@@ -12,6 +12,10 @@ extern int currentPoseIndex;
 extern int DFR_min; 
 extern int DFR_max;
 extern Adafruit_PWMServoDriver pwm;
+// True is closed, false is open
+extern bool claw_state; 
+extern const bool closed;
+extern const bool open;
 
 // Create a structure to hold Servo configuration
 struct ServoConfig {
@@ -39,23 +43,24 @@ struct ServoConfig {
 
 //Struct defintion for holding poses
 struct Pose {
-  int jointStates[5];
-  
+  int jointStates[6];
   Pose() {
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 6; ++i) {
       jointStates[i] = 0;
     }
   }
   
-  Pose(int base, int j1, int j2, int j3, int j4) {
+  Pose(int base, int j1, int j2, int j3, int j4, bool pose_claw_state) {
     jointStates[0] = base;
     jointStates[1] = j1;
     jointStates[2] = j2;
     jointStates[3] = j3;
     jointStates[4] = j4;
+    jointStates[5] = pose_claw_state;
   }
 };
 extern Pose poseSequence[];
+
 
 
 
@@ -73,6 +78,8 @@ int getJointPos(const ServoConfig &config);
 
 // Move servo to a specific position in joint space
 bool moveTo(ServoConfig &config, int joint_goal);
+
+bool BinaryClaw(int desired_claw_state); // True is closed, false is open
 
 // Print out positions of selected servo
 void printPos(const ServoConfig &config);

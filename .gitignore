@@ -154,3 +154,4 @@ ArmbotJr_DFR_servos_PWM_Shield/.vscode/arduino.json
 **/.vscode/**
 *.json
 .vscode/*.json
+.vscode/arduino.json

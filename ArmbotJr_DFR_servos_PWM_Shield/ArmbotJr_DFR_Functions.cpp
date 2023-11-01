@@ -8,12 +8,15 @@ int currentPoseIndex = 0;
 // Constants for control pulse lengths
 // from 500us = 0deg per the datasheet;
 //(500us * 60Hz)*4096 = 122.9
-int DFR_min = 125; 
+int DFR_min = 125;
  // from 2500us = 270deg per the datasheet
  //(2500us * 60Hz)*4096 = 614.4
-int DFR_max = 615;
+int DFR_max = 615; 
 //sets up the pwm shield
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+// True is closed, false is open
+ const bool closed = true; //just so we can say "closed" or "open" instead remembering which is which
+ const bool open = false;
 
 
 // Calibrate a servo
@@ -21,9 +24,11 @@ void calibrate(ServoConfig &config) {
   Serial.print("Calibrating servo: ");
   Serial.println(config.name);
 
+
   // Calculate the pulse length for the min and max position
   int pulseLen_min = map(config.minDegree, 0, 270, DFR_min, DFR_max);
   int pulseLen_max = map(config.maxDegree, 0, 270, DFR_min, DFR_max);
+
 
   pwm.setPWM(config.PWM_Channel, 0, pulseLen_min);
   delay(3000);
@@ -33,13 +38,29 @@ void calibrate(ServoConfig &config) {
   Serial.print("Actual Min: ");
   Serial.println(getJointPos(config));
 
-  pwm.setPWM(config.PWM_Channel, 0, pulseLen_max);
+
+  if(strcmp(config.name, "J1") == 0){ //move J1 slower than the others from min to max for safety
+  Serial.println("Moving J1 Slowly");
+    for (int i = pulseLen_min; i <= pulseLen_max; i++)
+    {
+      pwm.setPWM(config.PWM_Channel, 0, i);
+      delay(50);
+    }
+  }
+  else{ // if not base joint
+    pwm.setPWM(config.PWM_Channel, 0, pulseLen_max);
+    }
+
   delay(3000);
   // Read max feedback and store it in config object
   config.maxFeedback = analogRead(config.Feedback_Pin);
   Serial.println(config.maxFeedback);
   Serial.print("Actual Max: ");
   Serial.println(getJointPos(config));
+  
+
+
+
 
   // Move the servo to default position
   bool res = moveTo(config, config.defaultPos);
@@ -50,6 +71,7 @@ void calibrate(ServoConfig &config) {
   Serial.println("Motor Calibrated");
   
   return;
+  
 }
 
 // Translate servo angle to joint angle
@@ -90,12 +112,52 @@ int diff = (getJointPos(config) - joint_goal);
   //if we made it and alls good:
   return true;
 }
+
+// True is closed, false is open
+bool BinaryClaw(int desired_claw_state){ //Assuming Claw is on channel 5  - no feedback for this servo
+// the claw's servo is the mg996r, which has a range of 0-180 degrees
+// and a pulse range of 1000-2000us, with 1500 in the middle 
+/* int close_PL=245; //derived like DFR_min
+int open_PL=368; // 1500us * 60Hz * 4096 = 368 */
+//Claw being open is 90, closed is 0
+int close_PL = 570; //derived like DFR_min
+int open_PL = 125; // 1500us * 60Hz * 4096 = 368
+/* if(desired_claw_state == claw_state){
+  return false; //already in desired state
+} */
+if(desired_claw_state == closed){
+  Serial.print("Moving Claw to "); 
+  Serial.println("Closed");
+  pwm.setPWM(5, 0, close_PL);
+  Serial.println(close_PL);
+  
+  bool claw_state = closed;
+  return true;
+}
+else if(desired_claw_state == open){
+  Serial.print("Moving Claw to "); 
+  Serial.println("Open");
+  pwm.setPWM(5, 0, open_PL);
+    Serial.println(open_PL);
+
+  bool claw_state = open;
+  return true;
+}
+else{
+  return false;
+}
+} 
+
+
 void printPos(const ServoConfig &config) {
   Serial.print(config.name);
   Serial.print(": ");
   Serial.print(getJointPos(config));  // Assuming getPos() returns the joint position
   Serial.print(" deg");
 }
+
+
+
 void printAllJointPos(ServoConfig configs[], int numJoints) {
 
   //Serial.println("Joint Positions:");
