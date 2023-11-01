@@ -74,12 +74,12 @@ void calibrate(ServoConfig &config) {
   
 }
 
-// Translate servo angle to joint angle
+// Translate servo angle to joint space angle
 int servoToJoint(int servo_angle, const ServoConfig &config) {
   return map(servo_angle, config.minDegree, config.maxDegree, config.jointMinDegree, config.jointMaxDegree);
 }
 
-// Translate joint angle to servo angle
+// Translate joint angle to servo space angle 
 int jointToServo(int joint_angle, const ServoConfig &config) {
   return map(joint_angle, config.jointMinDegree, config.jointMaxDegree, config.minDegree, config.maxDegree);
 }
@@ -96,15 +96,14 @@ bool moveTo(ServoConfig &config, int joint_goal) {
     Serial.println("Out of bounds!!!");
     return false;
   }  
-//  Serial.print("Moving Joint "); Serial.print(config.name); Serial.print(" to "); Serial.println(joint_goal);
   // Calculate the pulse length for the given position
   int pulseLen = map(servo_goal, 0, 270, DFR_min, DFR_max);
   // Move the servo to desired position
   pwm.setPWM(config.PWM_Channel, 0, pulseLen);
-  //delay (1500); //wait for joint to move
   // Check if the servo moved to desired position
 int diff = (getJointPos(config) - joint_goal);
-/*if (abs(diff) > 1)
+//This diff is unused, needs to be fixed in order to get actual real time closed-loop control of the servos 
+/*if (abs(diff) > 1) 
   {
     Serial.println("Failed to move to desired position, fixing...");
   moveTo(config, (goal + diff));
@@ -114,14 +113,11 @@ int diff = (getJointPos(config) - joint_goal);
 }
 
 // True is closed, false is open
-bool BinaryClaw(int desired_claw_state){ //Assuming Claw is on channel 5  - no feedback for this servo
+bool BinaryClaw(int desired_claw_state){ //Assuming Claw servo is on channel 5  - no feedback for this servo
 // the claw's servo is the mg996r, which has a range of 0-180 degrees
-// and a pulse range of 1000-2000us, with 1500 in the middle 
-/* int close_PL=245; //derived like DFR_min
-int open_PL=368; // 1500us * 60Hz * 4096 = 368 */
-//Claw being open is 90, closed is 0
-int close_PL = 570; //derived like DFR_min
-int open_PL = 125; // 1500us * 60Hz * 4096 = 368
+// the servo doesnt have a feedback pin, so thats why its not setup in ServoConfig at the moment
+int close_PL = 570; //derived from testing, 
+int open_PL = 125; 
 /* if(desired_claw_state == claw_state){
   return false; //already in desired state
 } */

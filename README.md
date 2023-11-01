@@ -2,8 +2,6 @@
 
 This repository contains all the necessary documentation and code base for the Armbot-Junior Demobots project.
 
-## PLEASE NOTE THAT THE README IS STILL A WORK IN PROGRESS, DESCRIPTIONS OF CODE AND FUNCTIONS ARE NOT COMPLETE AND MAY BE INACCURATE.
-
 ## Introduction
 
 Armbot-Junior is a miniature 6DOF (Degrees of Freedom) robotic arm project. It is primarily designed to serve as a test bed for the main Armbot project and as an educational tool. This project uses DFRobot's Servos with an internal analog feedback potentiometer, enabling the user to get real-time position data of the robot arm.
@@ -23,189 +21,271 @@ This Arduino Sketch was originally in a single file, but was split into a "main"
 
 
 
-### [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_servos_PWM_Shield.ino) Explained
+## [`ArmbotJr_DFR_servos_PWM_Shield.ino`](ArmbotJr_DFR_servos_PWM_Shield/ArmbotJr_DFR_servos_PWM_Shield.ino) Explained
 
 The `ArmbotJr_DFR_servos_PWM_Shield` program works as follows:
+
+
+
 
 A struct named `ServoConfig` is defined to hold the configuration details of each servo such as name, PWM pin number, feedback pin number, a minimum and maximum degree value, and a minimum and maximum feedback value (for use in calibration). A constructor is also defined which accepts these parameters to create an object of the struct. 
 
 ###### (*A constructor is a special kind of function that gets called automatically when an object of the struct is created. Its main purpose is to assign initial values to the data members of the new object. It helps ensure that objects are valid as soon as they're created and simplifies code since initialization details are kept within the struct. Honestly this shouldnt really be done with a struct, I just kind of suck using Classes properly, add that to the TODO list lol*) 
 
+### Global Variables and Constants 
+- `const int mode`: A constant that determines the operating mode of the program. A value of `0` runs custom test code, while a value of `1` enables a "pseudo-multitasking" mode for running a sequence of poses. 
+- `ServoConfig Base`: A `ServoConfig` object that holds the configuration details of the base servo.
+- `ServoConfig J1`: A `ServoConfig` object that holds the configuration details of the J1 servo.
+- `ServoConfig J2`: A `ServoConfig` object that holds the configuration details of the J2 servo.
+- `ServoConfig J3`: A `ServoConfig` object that holds the configuration details of the J3 servo.
+- `ServoConfig J4`: A `ServoConfig` object that holds the configuration details of the J4 servo.
+- `ServoConfig allJoints[]`: An array of `ServoConfig` objects, each representing a joint in the robotic arm. 
+- `const int numJoints`: Specifies the total number of joints, which is 5 in this case. 
+- `Pose poseSequence[]`: An array of `Pose` objects, defining a sequence of poses to be executed. 
+- `const int numPoses`: The total number of poses in `poseSequence`.
+### `setup()` Function
 
-```cpp
-struct ServoConfig {
-  char name[20];
-  int PWM_Channel;
-  int Feedback_Pin;
-  int minDegree;
-  int maxDegree;
-  int minFeedback;
-  int maxFeedback;
+The `setup` function performs the following tasks:
+1. Initializes serial communication with a baud rate of 9600.
+2. Starts the Adafruit PWM servo driver and sets its frequency to 60Hz. 
+3. Locks all the motors in their current positions using `moveTo`. 
+4. Calibrates all servos using the `calibrate` function.
+### `loop()` Function
 
-    // Constructor for struct ServoConfig
-  ServoConfig(const char* servo_name, int channel, int feedback, int min_deg, int max_deg)
-    : PWM_Channel(channel), Feedback_Pin(feedback), minDegree(min_deg), maxDegree(max_deg), minFeedback(0), maxFeedback(1023) {
-    strncpy(name, servo_name, sizeof(name));
-    name[sizeof(name) - 1] = '\0';
-  }
-};
+The `loop` function is divided into two primary sections, controlled by the `mode` variable:
+#### Mode 1 (`mode == 1`) 
+1. **Task 1 - Pose Execution** : 
+- Uses the `millis` function to keep track of elapsed time. 
+- Executes a pose from `poseSequence` every `intervalPose` milliseconds.
+- Moves the servos to the positions specified in the next pose. 
+- Cycles through the `poseSequence` array. 
+2. **Task 2 - Print Joint Positions** : 
+- Prints the current positions of all joints at intervals specified by `intervalPrint`.
+#### Mode 0 (`mode == 0`)
+- This is where you can add your own custom test code.
+- The example code given moves joint J4 to -90 degrees and closes the claw, waits for 3 seconds, then moves J4 to 90 degrees and opens the claw, followed by another 3-second wait.
+### Summary 
+- **Mode 1** : Intended for "pseudo-multitasking" by executing a sequence of poses while continuously printing the joint positions. 
+- **Mode 0** : Intended for running custom test code.
+
+---
+## Individual Structs and Functions Explained
+### `ServoConfig` Struct
+
+The `ServoConfig` struct serves as a configuration container for each servo in the robotic arm. It holds various parameters and states for a given servo: 
+- `name`: A string to hold the name of the servo. 
+- `PWM_Channel`: An integer representing the PWM pin number to which the servo is connected. 
+- `Feedback_Pin`: An integer representing the pin number that receives feedback from the servo. 
+- `minDegree` and `maxDegree`: Integers that specify the minimum and maximum limits of the servo in degrees. 
+- `jointMinDegree` and `jointMaxDegree`: Integers that specify the minimum and maximum limits of the joint associated with the servo, in "joint space" (angles centered at zero, instead of 0 to 270 degrees, its -135 to +135 degrees, etc). 
+- `minFeedback` and `maxFeedback`: Integers that specify the minimum and maximum feedback values that can be received from the servo. These get added in the `calibrate()` function.
+- `defaultPos`: An integer that holds the default or "safe" position of the joint.
+
+The struct also includes a constructor that initializes these fields.
+
+At the top of the main code (.ino file), a `ServoConfig` object may be configured with:
+
 ```
-
-
-As of writing, only two servos are initialized using the `ServoConfig struct` - "Base" and "J1".
-
-***Please note, "JX" is just a placeholder for additional servos that are yet to be added.***
-
-The `minDegree` and `maxDegree` values are the actual movment limits of the arm joint associated with each servo motor. For example, the Base joint moves from 0 to 180 degrees, so at the top of the code (or in the `setup()` function), it may be configured with:
-
+ServoConfig J2("J2", 2, A2, 5, 270, -135, 135, 0);
 ```
-ServoConfig Base("Base", 0, A0, 0, 180); 
-```
-Where `"Base"` is the joint's name, `0` is the PWM Channel, corresponding to where the servo cable is plugged into on the PWM Shield, `A0` is the pin connected to servo's white feedback signal wire, and `0, 180` are the minimum and maximum rotation/angle the base joint can physically move.
+Where `"J2"` is the joint's name, `2` is the PWM Channel, corresponding to where the servo cable is plugged into on the PWM Shield, `A2` is the analog input pin connected to servo's white feedback signal wire, `5, 270` are the minimum and maximum rotation/angle the J2 joint can physically move, and `-135, 135` are the minimum and maximum rotation/angle the J2 joint can move in "joint space" (centered at zero, instead of 0 to 270 degrees, its -135 to +135 degrees, etc). `0` is the default position of the joint (straight upwards) in this example.
 
 You can configure the servo like this at the start of the code, or within the `setup()` function.
 
-After configuring, you'll now be able to "pass in" `Base` to functions like `calibrate()`, `moveTo()`, and `getPos()`.
+After configuring, you'll now be able to "pass in" `J2` to functions like `calibrate()`, `moveTo()`, and `getPos()`, etc.
 
-### The `setup()` function
+---
+### `Pose` Struct
 
-In the `setup()` function, serial communication is initiated to allow for monitoring of the program.
+The `Pose` struct is used for holding the states of all joints in a particular pose. It contains: 
+- `jointStates`: An array of integers, where each index corresponds to a joint state in joint space. The last index (`jointStates[5]`) is used to indicate the state of the claw (open or closed).
+
+The struct provides two constructors:
+1. A default constructor that initializes all joint states to zero.
+2. A parameterized constructor that allows setting of each joint state and the claw state (open or closed).
+
+At the top of the main code (.ino file), or in the setup(), a `Pose` object may be configured with:
+
+`Pose test_pose = Pose(0, -45, 90, -90, 90, open);
+` 
+
+Where `0, -45, 90, -90, 90` are the joint states in joint space, and `closed` is the claw state (open or closed).
+
+later on, in the `loop()` function or elsewhere, you can then do:
+```
+  moveTo(Base, test_pose.jointStates[0]);
+  moveTo(J1, test_pose.jointStates[1]);
+  moveTo(J2, test_pose.jointStates[2]);
+  moveTo(J3, test_pose.jointStates[3]);
+  moveTo(J4, test_pose.jointStates[4]);
+  BinaryClaw(test_pose.jointStates[5]);
+```
+This will move all the joints to the positions specified in the `test_pose` object.
+
+###### (*This can def be made into it's own "moveToPose" function or something, but for now this works*)
+---
+### `calibrate(ServoConfig &config)`
+#### Description
+
+The `calibrate` function is responsible for calibrating a servo motor based on its configuration. Calibration involves finding the minimum and maximum feedback values and storing them in the `ServoConfig` object. It also moves the servo to its default position at the end of the process.
+#### Parameters 
+- `config`: A reference to a `ServoConfig` struct that contains the servo's configuration.
+#### Implementation Details 
+1. **Initialization** : It starts by printing the name of the servo being calibrated. 
+2. **Pulse Length Calculation** : It calculates the pulse lengths (`pulseLen_min` and `pulseLen_max`) corresponding to the servo's minimum and maximum angles. These calculations use the global constants `DFR_min` and `DFR_max`. 
+3. **Minimum Feedback Reading** : 
+- The servo is first moved to its minimum angle using `pwm.setPWM()`. 
+- After a delay, the minimum feedback value is read using `analogRead()` and stored in the `ServoConfig` object. 
+4. **Maximum Feedback Reading** :
+- The servo is then moved to its maximum angle.
+- For joint "J1", it moves slowly to its max position for safety reasons. 
+- Again, after a delay, the maximum feedback value is read and stored in the `ServoConfig` object. 
+5. **Default Position** : Finally, the servo is moved to its default position using the `moveTo` function. If the movement fails, an error message is printed. 
+6. **Return** : The function then returns, signaling the end of the calibration process.
+#### Example Usage
+
+Its best to do this in the `setup()` function:
+```cpp
+calibrate(Base);
+calibrate(J1);
+calibrate(J2);
+//etc...
+```
+---
+### `servoToJoint(int servo_angle, const ServoConfig &config)`
+#### Description
+
+This function translates a given servo angle to its corresponding angle in joint space.
+#### Parameters 
+- `servo_angle`: The angle of the servo in servo space. 
+- `config`: A constant reference to a `ServoConfig` struct containing the servo's configuration. Since each joint has its own limits, this parameter is used to determine the joint space limits of the servo.
+#### Implementation Details
+
+The function uses the Arduino `map` function to translate the servo angle to a joint space angle based on the minimum and maximum degree limits defined in `ServoConfig`.
+#### Example Usage
 
 ```cpp
-Serial.begin(9600);
+int joint_angle = servoToJoint(90, J1);
 ```
 
-Here we also initialize the Adafruit PWM Servo Driver. Don't forget to include this part in your code.
-```
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-```
-Calibration for each of the servos is performed here as well.
+---
+### `jointToServo(int joint_angle, const ServoConfig &config)`
+#### Description
+
+This function performs the inverse operation of `servoToJoint`; it translates a given joint angle to its corresponding angle in servo space.
+#### Parameters 
+- `joint_angle`: The angle of the joint in joint space. 
+- `config`: A constant reference to a `ServoConfig` struct containing the servo's configuration.
+#### Implementation Details
+
+Similar to `servoToJoint`, it also uses the `map` function but reverses the mapping to translate from joint space to servo space.
+#### Example Usage
 
 ```cpp
-calibrate(Base, Base_conf);
-calibrate(J1, J1_conf);
-calibrate(JX, JX_conf);
+int servo_angle = jointToServo(-45, J1);
 ```
 
+---
+### `getJointPos(const ServoConfig &config)`
+#### Description
 
-###  Here's how `calibrate()` function works:
-The `calibrate(ServoConfig &config)` function is used to calibrate a servo. This function helps to adjust the servo to get accurate movement.
-
-The function takes a `ServoConfig` object as an argument which contains the configuration details of the servo which needs to be calibrated.
-
-Inside this function, it first prints the name of the servo being calibrated to the serial monitor.
-
-Then it reads the minimum and maximum feedback from the servo. The `analogRead()` function is used on the `Feedback_Pin` of the `ServoConfig` object to get these values. These values are then stored inside `minFeedback` and `maxFeedback` attributes of the `ServoConfig` object.
-
-These minimum and maximum feedback values are printed on the serial monitor for the user's reference.
-
-For example,Let's say you want to calibrate the `Base_conf` servo:
+This function retrieves the current position of a servo in terms of joint space.
+#### Parameters 
+- `config`: A constant reference to a `ServoConfig` struct containing the servo's configuration.
+#### Implementation Details 
+- It first reads the current feedback from the servo using `analogRead`. 
+- Then it maps this feedback to a servo angle based on the minimum and maximum feedback values defined in `ServoConfig`. 
+- Finally, it uses `servoToJoint` to convert this servo angle to joint space.
+#### Example Usage
 
 ```cpp
-calibrate(Base_conf);
+int current_joint_pos = getJointPos(J1);
 ```
-In this case, the `Base_conf object` is passed as an argument to the `calibrate()` function. The function will then calibrate the base servo according to its defined `ServoConfig` settings and provide you the calibration results on the serial monitor.
+---
+### `moveTo(ServoConfig &config, int joint_goal)`
+#### Description
 
-Please note that the calibration should be performed during the setup phase of the Arduino program in the `setup()` function.
-
-### The `loop()` Function
-
-The `loop()` function is where you put your `moveTo()` function calls. For example:
+The `moveTo` function is designed to move a servo to a specific position in joint space. It checks for boundary conditions, calculates the required pulse length, and attempts to move the servo.
+#### Parameters 
+- `config`: A reference to a `ServoConfig` struct containing the servo's configuration. 
+- `joint_goal`: The desired joint position in joint space.
+#### Implementation Details 
+1. **Servo Goal Calculation** : It first translates the joint goal to servo space using `jointToServo`. 
+2. **Boundary Check** : Checks if the calculated servo goal is within the min and max limits defined in `ServoConfig`. If not, it prints an "Out of bounds!!!" error and returns `false`. 
+3. **Pulse Length Calculation** : It calculates the pulse length (`pulseLen`) required to move the servo to the desired position. 
+4. **Servo Movement** : Uses `pwm.setPWM()` to move the servo to the desired position. 
+5. **Position Verification (Commented Out)** : The function contains commented-out code for verifying if the servo has reached the desired position. This part is currently not implemented, which is mentioned in the comment. 
+6. **Return** : Finally, the function returns `true`, indicating that the command to move the servo was issued.
+#### Example Usage
 
 ```cpp
-void loop() {
-  moveTo(Base, Base_conf, 0);
-  moveTo(Base, Base_conf, 180);
+// Using the returned boolean value to check for success
+bool success = moveTo(myServoConfig, -45);
+if (!success) {
+  Serial.println("Failed to move servo.");
 }
+
+// Without using the returned boolean value, simply issuing the command
+moveTo(myServoConfig, -45);
 ```
 
-In this example, the `Base` servo moves between 0 and 180 degrees.
+---
+### `BinaryClaw(int desired_claw_state)`
+#### Description
 
-
-### The `moveTo()` Function Explained
-
-`moveTo(ServoConfig &config, int goal)` function is used to move a servo to a target position. It checks if the target position is within the servo's valid degree range. If yes, it maps the degree to a pulse length and moves the servo to the target position.
-
-The function starts by ensuring the angle you want to move the servo towards, the `goal`, is within the range of the motion arm joint. If the `goal` is out of these boundaries, "OUT OF BOUNDS" is printed on the serial monitor, and the function exits.
+The `BinaryClaw` function controls the state of the claw, setting it to either open or closed based on the `desired_claw_state` parameter. This function assumes that the claw's servo is connected to channel 5.
+#### Parameters 
+- `desired_claw_state`: An integer that indicates the desired state of the claw. The constant `closed` represents a closed state, while `open` represents an open state.
+#### Implementation Details 
+1. **Pulse Lengths** : The function has hardcoded pulse lengths (`close_PL` and `open_PL`), which were derived from testing, to open and close the claw. 
+2. **State Check** : Although commented out, there's a provision to check whether the claw is already in the desired state. 
+3. **Claw Movement** : 
+- If `desired_claw_state` is `closed`, the function uses `pwm.setPWM()` to move the claw to the closed position. 
+- If `desired_claw_state` is `open`, it moves the claw to the open position. 
+4. **Logging** : The function prints the action it is taking ("Moving Claw to Closed/Open"). 
+5. **Return** : Finally, the function returns `true` if it successfully issues the command to move the claw. Otherwise, it returns `false`.
+#### Example Usage
 
 ```cpp
-if(goal > config.maxDegree || goal < config.minDegree){
-  Serial.println("OUT OF BOUNDS");
-  return;
+// Using the returned boolean value to check for success
+bool success = BinaryClaw(closed);
+if (!success) {
+  Serial.println("Failed to move claw.");
 }
-```
 
-Once the move is verified to be possible, the function prints out the name of the servo and its target angle.
+// Simply issuing the command without checking for success
+BinaryClaw(open);
+```
+---
+### `printPos(const ServoConfig &config)`
+#### Description
+
+The `printPos` function prints the current position of a specified servo in joint space.
+#### Parameters 
+- `config`: A constant reference to a `ServoConfig` struct containing the servo's configuration.
+#### Implementation Details 
+- It prints the name of the servo followed by its current position in degrees, fetched using the `getJointPos` function.
+#### Example Usage
 
 ```cpp
-Serial.print("Moving Motor: ");
-Serial.print(config.name);
-Serial.print(" towards: ");
-Serial.println(goal);
+printPos(J1);  // Outputs something like "J1: -45 deg"
 ```
 
-Next, we convert the `goal` angle into a pulse length that the servo understands. This is done through mapping the angle to its equivalent pulse length.
+---
+### `printAllJointPos(ServoConfig configs[], int numJoints)`
+#### Description
+
+The `printAllJointPos` function prints the current positions of all servos in an array in joint space.
+#### Parameters 
+- `configs`: An array of `ServoConfig` structs, each containing the configuration for one servo. 
+- `numJoints`: The number of servos (or joints) in the array.
+#### Implementation Details 
+- It iterates through the `configs` array and prints the name of each servo along with its current position in joint space.
+- The function also includes formatting to align the output neatly.
+#### Example Usage
 
 ```cpp
-goal = map(goal, config.minDegree, config.maxDegree, DFR_min, DFR_max);
+ServoConfig allJoints[] = {Base, J1, J2, J3, J4};
+printAllJointPos(allJoints, 5);  
+// Outputs the current positions of all servos in the allJoints[] array
 ```
-
-Now the servo will actually move. We use the `setPWM()` method from the Adafruit library to execute the movement.
-
-```cpp
-pwm.setPWM(config.PWM_pin, 0, goal);
-```
-
-After the servo moves, the function waits for a short period and then checks the actual position reached, which is then printed out on the serial monitor.
-
-```cpp
-delay(1000);  // Wait for servo to reach position
-Serial.println("Actual Angle: ");
-Serial.println(getPos(config));
-```
-
-### Understanding the `getPos()` Function
-
-The `getPos()` function helps us know the real-time position of the servo in degrees. 
-This function reads the analog feedback from the servo's feedback pin and maps it to the corresponding angle. Sounds complicated? Let's break it down.
-
-Here's the function:
-
-```cpp
-int getPos(const ServoConfig& config) {
-  return abs(map(analogRead(config.Feedback_Pin), config.minFeedback, config.maxFeedback, config.minDegree, config.maxDegree));
-}
-```
-
-#### The Role of `minFeedback` and `maxFeedback`
-
-So, what's the deal with `minFeedback` and `maxFeedback`? These are the analog feedback values when the servo is at its minimum and maximum physical positions (angles). When you calibrate the servo, you store these values like this:
-
-```cpp
-config.minFeedback = analogRead(config.Feedback_Pin);  // At minimum angle
-```
-and
-```cpp
-config.maxFeedback = analogRead(config.Feedback_Pin);  // At maximum angle
-```
-
-These values help the `map()` function translate raw feedback into actual angles:
-
-```cpp
-map(analogRead(config.Feedback_Pin), config.minFeedback, config.maxFeedback, config.minDegree, config.maxDegree)
-```
-
-Imagine we're working with a servo for the base joint, the one that rotates the arm on the base, (`Base_conf`). After calibration, let's say the `minFeedback` value we got is `300`, and the `maxFeedback` value is `700`.
-
-When the servo is at its minimum physical limit, the analog feedback reads `300`. When it's at its maximum, it reads `700`.
-
-Now let's say you read a value of `500` from the feedback pin. Using `getPos()`, it would map this `500` like this:
-
-```cpp
-map(500, 300, 700, 0, 180)
-```
-
-It will tell you the servo is currently at `90 degrees`, right in the middle of its range from `0 to 180 degrees`.
-
-
-
