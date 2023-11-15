@@ -13,10 +13,10 @@ int DFR_min = 125;
  //(2500us * 60Hz)*4096 = 614.4
 int DFR_max = 615; 
 //sets up the pwm shield
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // True is closed, false is open
- const bool closed = true; //just so we can say "closed" or "open" instead remembering which is which
- const bool open = false;
+bool closed = true; //just so we can say "closed" or "open" instead remembering which is which
+bool open = false;
 
 
 // Calibrate a servo
@@ -30,7 +30,18 @@ void calibrate(ServoConfig &config) {
   int pulseLen_max = map(config.maxDegree, 0, 270, DFR_min, DFR_max);
 
 
-  pwm.setPWM(config.PWM_Channel, 0, pulseLen_min);
+  if(strcmp(config.name, "J1") == 0){ //move J1 slower than the others from min to max for safety
+  Serial.println("Moving J1 Slowly");
+    for (int i = (pulseLen_max+pulseLen_min/2); i <= pulseLen_min; i--)
+    {
+      pwm.setPWM(config.PWM_Channel, 0, i);
+      delay(50);
+    }
+    
+  }
+  else{ // if not base joint
+    pwm.setPWM(config.PWM_Channel, 0, pulseLen_min);
+    }
   delay(3000);
   // Read min feedback and store it in config object
   config.minFeedback = analogRead(config.Feedback_Pin);
@@ -46,6 +57,7 @@ void calibrate(ServoConfig &config) {
       pwm.setPWM(config.PWM_Channel, 0, i);
       delay(50);
     }
+
   }
   else{ // if not base joint
     pwm.setPWM(config.PWM_Channel, 0, pulseLen_max);
@@ -121,29 +133,28 @@ bool BinaryClaw(int desired_claw_state){ //Assuming Claw servo is on channel 5  
   /* if(desired_claw_state == claw_state){
     return false; //already in desired state
   } */
-  if(desired_claw_state == closed){
+  if(desired_claw_state == true){
     Serial.print("Moving Claw to "); 
     Serial.println("Closed");
-    pwm.setPWM(15, 0, close_PL);
+    pwm.setPWM(11, 0, close_PL);
     Serial.println(close_PL);
     
-    bool claw_state = closed;
-    return true;
+    bool claw_state = true;
+    return claw_state;
   }
-  else if(desired_claw_state == open){
+  else if(desired_claw_state == false){
     Serial.print("Moving Claw to "); 
     Serial.println("Open");
     pwm.setPWM(5, 0, open_PL);
       Serial.println(open_PL);
 
-    bool claw_state = open;
-    return true;
+    bool claw_state = false;
+    return claw_state;
   }
   else{
     return false;
   }
 } 
-
 
 void printPos(const ServoConfig &config) {
   Serial.print(config.name);
@@ -152,12 +163,10 @@ void printPos(const ServoConfig &config) {
   Serial.print(" deg");
 }
 
-
-
-void printAllJointPos(ServoConfig configs[], int numJoints) {
+void printAllJointPos(ServoConfig configs[], int num_Joints) {
 
   //Serial.println("Joint Positions:");
-  for (int i = 0; i < numJoints; ++i) {
+  for (int i = 0; i < num_Joints; ++i) {
     Serial.print(configs[i].name);
     Serial.print(":");
     // Add spaces for alignment

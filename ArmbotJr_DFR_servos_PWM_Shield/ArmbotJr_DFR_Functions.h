@@ -14,8 +14,8 @@ extern int DFR_max;
 extern Adafruit_PWMServoDriver pwm;
 // True is closed, false is open
 extern bool claw_state; 
-extern const bool closed;
-extern const bool open;
+extern  bool closed;
+extern  bool open;
 
 // Create a structure to hold Servo configuration
 struct ServoConfig {
@@ -84,5 +84,5 @@ bool BinaryClaw(int desired_claw_state); // True is closed, false is open
 // Print out positions of selected servo
 void printPos(const ServoConfig &config);
 // Print out positions of all JOINTS
-void printAllJointPos(ServoConfig configs[], int numJoints);
+void printAllJointPos(ServoConfig configs[], int num_Joints);
 #endif

@@ -1,31 +1,39 @@
 #include "ArmbotJr_DFR_Functions.h"
 
-const int mode = 0; 
+const int mode = 1; 
 // 0 = runs your own test code in loop()
 // 1 = enable pose sequence "pseudo-multitasking" in loop(), still a WIP
 
 // Create ServoConfig objects for each servo
-ServoConfig Base("Base", 10, 0, 0, 195, -90, 90, 0);
-ServoConfig J1("J1", 11, 4, 5, 180, -90, 90, 0);
-ServoConfig J2("J2", 12, 2, 5, 270, -135, 135, 0);
-ServoConfig J3("J3", 13, 15, 45, 270, -90, 135, 0);
-ServoConfig J4("J4", 14, 13, 0, 270, -135, 135, 12);
+ServoConfig Base("Base", 0, 12, 0, 195, -90, 90, -5);
+ServoConfig J1("J1", 3, 4, 5, 185, -90, 90, 0);
+ServoConfig J2("J2", 4, 2, 5, 270, -135, 135, 0);
+ServoConfig J3("J3", 7, 15, 45, 270, -90, 135, 0);
+ServoConfig J4("J4", 8, 13, 0, 270, -135, 135, 0);
 
 ServoConfig allJoints[] = {Base, J1, J2, J3, J4};
 const int numJoints = 5;
 
 
 //can be any number of poses, just make sure to change numPoses to the correct number
-const int numPoses = 2;  // Number of poses in the sequence
+const int numPoses = 8;  // Number of poses in the sequence
 Pose poseSequence[numPoses] = { // Sequence of user-defined poses to test in the loop
-  Pose(0, -45, 90, -90, 90, closed),
-  Pose(0, -45, 90, -90, 90, open)
+  Pose(0, -45, 90, -90, 90, false),
+  Pose(0, -45, 90, -90, 90, true),
+  Pose(0, 45, -90, 90, -90, false),
+  Pose(0, 45, -90, 90, -90, true),
+  
+  Pose(90, -45, 90, -90, 90, false),
+  Pose(-90, -45, 90, -90, 90, true),
+  Pose(90, 45, -90, 90, -90, false),
+  Pose(-90, 45, -90, 90, -90, true)
+
 };
 
 // Setup function for initializing the program
 void setup() {
   // Start serial communication
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.println("Setup");
   //set the resolution to 12 bits (0-4096)
   analogReadResolution(12);
@@ -33,6 +41,8 @@ void setup() {
   // Initialize the Adafruit PWM servo driver
   pwm.begin();
   pwm.setPWMFreq(60);  // Set PWM frequency to 60Hz
+  Wire.setClock(400000);
+
   //Locks all motors in current position (make sure in safe position before running the code)
   moveTo(Base, 0);  
   moveTo(J1, 0);
@@ -40,7 +50,7 @@ void setup() {
   moveTo(J3, 0);
   moveTo(J4, 0); 
   // Calibrate all the servos
-  //from the top down is usually safer
+  // from the top down is usually safer
   calibrate(J4);
   calibrate(J3);
   calibrate(J2);
@@ -83,11 +93,14 @@ void loop() {
    // Add your own test code here
 
   //for example:
-  moveTo(J4, -90);
-  BinaryClaw(closed);
+  Serial.println("Moving to -90");
+  moveTo(Base, -90);
   delay(3000);
-  moveTo(J4, 90);
-  BinaryClaw(open);
+  Serial.println("Moving to 90");
+  moveTo(Base, 90);
+  delay(3000);
+  Serial.println("Moving to 0");
+  moveTo(Base, -5);
   delay(3000);
   }
 }
