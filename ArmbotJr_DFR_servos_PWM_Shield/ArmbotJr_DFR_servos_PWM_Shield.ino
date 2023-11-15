@@ -5,11 +5,11 @@ const int mode = 0;
 // 1 = enable pose sequence "pseudo-multitasking" in loop(), still a WIP
 
 // Create ServoConfig objects for each servo
-ServoConfig Base("Base", 0, A0, 0, 195, -90, 90, 0);
-ServoConfig J1("J1", 1, A1, 5, 180, -90, 90, 0);
-ServoConfig J2("J2", 2, A2, 5, 270, -135, 135, 0);
-ServoConfig J3("J3", 3, A3, 45, 270, -90, 135, 0);
-ServoConfig J4("J4", 4, A4, 0, 270, -135, 135, 12);
+ServoConfig Base("Base", 10, 0, 0, 195, -90, 90, 0);
+ServoConfig J1("J1", 11, 4, 5, 180, -90, 90, 0);
+ServoConfig J2("J2", 12, 2, 5, 270, -135, 135, 0);
+ServoConfig J3("J3", 13, 15, 45, 270, -90, 135, 0);
+ServoConfig J4("J4", 14, 13, 0, 270, -135, 135, 12);
 
 ServoConfig allJoints[] = {Base, J1, J2, J3, J4};
 const int numJoints = 5;

@@ -124,7 +124,7 @@ int open_PL = 125;
 if(desired_claw_state == closed){
   Serial.print("Moving Claw to "); 
   Serial.println("Closed");
-  pwm.setPWM(5, 0, close_PL);
+  pwm.setPWM(15, 0, close_PL);
   Serial.println(close_PL);
   
   bool claw_state = closed;
