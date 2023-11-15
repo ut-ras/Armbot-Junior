@@ -25,8 +25,10 @@ Pose poseSequence[numPoses] = { // Sequence of user-defined poses to test in the
 // Setup function for initializing the program
 void setup() {
   // Start serial communication
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("Setup");
+  //set the resolution to 12 bits (0-4096)
+  analogReadResolution(12);
 
   // Initialize the Adafruit PWM servo driver
   pwm.begin();

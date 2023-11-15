@@ -13,7 +13,7 @@ int DFR_min = 125;
  //(2500us * 60Hz)*4096 = 614.4
 int DFR_max = 615; 
 //sets up the pwm shield
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40);
 // True is closed, false is open
  const bool closed = true; //just so we can say "closed" or "open" instead remembering which is which
  const bool open = false;
@@ -101,9 +101,9 @@ bool moveTo(ServoConfig &config, int joint_goal) {
   // Move the servo to desired position
   pwm.setPWM(config.PWM_Channel, 0, pulseLen);
   // Check if the servo moved to desired position
-int diff = (getJointPos(config) - joint_goal);
-//This diff is unused, needs to be fixed in order to get actual real time closed-loop control of the servos 
-/*if (abs(diff) > 1) 
+  int diff = (getJointPos(config) - joint_goal);
+  //This diff is unused, needs to be fixed in order to get actual real time closed-loop control of the servos 
+  /*if (abs(diff) > 1) 
   {
     Serial.println("Failed to move to desired position, fixing...");
   moveTo(config, (goal + diff));
@@ -114,34 +114,34 @@ int diff = (getJointPos(config) - joint_goal);
 
 // True is closed, false is open
 bool BinaryClaw(int desired_claw_state){ //Assuming Claw servo is on channel 5  - no feedback for this servo
-// the claw's servo is the mg996r, which has a range of 0-180 degrees
-// the servo doesnt have a feedback pin, so thats why its not setup in ServoConfig at the moment
-int close_PL = 570; //derived from testing, 
-int open_PL = 125; 
-/* if(desired_claw_state == claw_state){
-  return false; //already in desired state
-} */
-if(desired_claw_state == closed){
-  Serial.print("Moving Claw to "); 
-  Serial.println("Closed");
-  pwm.setPWM(15, 0, close_PL);
-  Serial.println(close_PL);
-  
-  bool claw_state = closed;
-  return true;
-}
-else if(desired_claw_state == open){
-  Serial.print("Moving Claw to "); 
-  Serial.println("Open");
-  pwm.setPWM(5, 0, open_PL);
-    Serial.println(open_PL);
+  // the claw's servo is the mg996r, which has a range of 0-180 degrees
+  // the servo doesnt have a feedback pin, so thats why its not setup in ServoConfig at the moment
+  int close_PL = 570; //derived from testing, 
+  int open_PL = 125; 
+  /* if(desired_claw_state == claw_state){
+    return false; //already in desired state
+  } */
+  if(desired_claw_state == closed){
+    Serial.print("Moving Claw to "); 
+    Serial.println("Closed");
+    pwm.setPWM(15, 0, close_PL);
+    Serial.println(close_PL);
+    
+    bool claw_state = closed;
+    return true;
+  }
+  else if(desired_claw_state == open){
+    Serial.print("Moving Claw to "); 
+    Serial.println("Open");
+    pwm.setPWM(5, 0, open_PL);
+      Serial.println(open_PL);
 
-  bool claw_state = open;
-  return true;
-}
-else{
-  return false;
-}
+    bool claw_state = open;
+    return true;
+  }
+  else{
+    return false;
+  }
 } 
 
 
